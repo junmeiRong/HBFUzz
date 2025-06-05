@@ -1,6 +1,20 @@
 # HBFUzz
 This repository contains code and data for the paper titled "Efficient Directed Hybrid Fuzzing via Target-Centric Seed Selection and Generation"
 
+This tool consists of two components: fuzz testing with AFLGo and symbolic execution with SymCC.
+It is divided into three stages:
+
+* Static Analysis: Use the svf-tool to compute dependency relationships and basic block distance information (with .bc files obtained via wllvm).
+
+* Compile the Executable for Symbolic Execution (instrumented with SymCC).
+
+* Compile the Executable for Fuzz Testing (instrumented with AFLGo).
+
+During execution, AFLGo and SymCC run concurrently.
+
+The **symcc_fuzzing_helper** continuously monitors AFLGo’s output directory, identifies newly generated seeds, prioritizes them based on precomputed dependency and distance information, and performs symbolic execution accordingly.
+
+Below is an example using the libming project:
 # Operation Steps
 ## 0.Initialize the Project
 ```shell
@@ -28,7 +42,6 @@ export DIST_DIR=$TMP_DIR
 extract-bc swftophp
 mkdir $TMP_DIR
 mkdir $TMP_DIR/results
-touch $TMP_DIR/cdbb.txt
 touch $TMP_DIR/cdbb.txt
 touch $TMP_DIR/cdbb2.txt
 touch $TMP_DIR/ddbb.txt
@@ -72,6 +85,7 @@ echo "" > ./in/seed
 ```
 
 ## 5.Start Dual-Engine Testing
+
 ### Terminal 1: Run AFLGO
 ```shell
 ~/aflgo/afl-2.57b/afl-fuzz -S fuzz-obj -m none -i in -o out ./util/swftophp @@
